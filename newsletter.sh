@@ -102,4 +102,4 @@ else  # połączono z bazą danych
 		fi  # wybrano adresatów
 	fi  # wybrano poprawny tryb wysyłania
 fi  # połączono z bazą danych
-#END
+#END JANEK
