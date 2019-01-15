@@ -1,8 +1,9 @@
 #!/bin/bash
-wget --no-check-certificate -q -O - 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSmCrzyJv7UUuw5SsfVxiKNV3_V-ldeQHVoznE_CqtDw-NuYXRgrE_qQvixGvEVqlVkDsw1G8cR4fHz/pub?output=tsv' | tr "\t" "#" | tail -n +2 | cut -d "#" --complement -f 1 | tr -d " " | tr "#" " " > dane.txt
+
+source env.sh
 
 if [ `cat dane.txt | wc -l` -eq 0 ];
-then 
+then
 	zenity --warning --text "Nie udało się połączyć z bazą danych"
 else  # połączono z bazą danych
 	choice=$(zenity --list --radiolist --text="Select mode" --column="" --column="" --hide-header FALSE "Print only" FALSE "Send" 2>/dev/null)
@@ -50,7 +51,7 @@ else  # połączono z bazą danych
 					rm temp1.txt;
 					rm temp.txt;
 					rm dane.txt;
-					gedit result.txt ;
+					gedit result.txt;
 					rm result.txt;
 				fi  # wybrano liczbę linii
 			elif [ $choice = "Send" ];
@@ -83,15 +84,25 @@ else  # połączono z bazą danych
 					else
 						if [ "$test" = "Test to me" ];
 						then 
-							sendemail -f wspolnota@lednica2000.pl -t jantechner@live.com -s lednica2000.pl:587 -xu wspolnota@lednica2000.pl -xp Nllk-p7gwd_a -o tls=yes -l log -o message-file=$file -o message-content-type=html -o message-charset=utf-8 -q -u $subject $attachment
+							sendemail -f $from -t $to -s $host -xu $login -xp $password -o tls=yes -l $logDirectory -o message-file=$file -o message-content-type=html -o message-charset=utf-8 -q -u $subject $attachment
 						else
 							sed -i 's/.$//' temp.txt
-							echo -e "jantechner@live.com\ngosia020697@gmail.com\ndte@op.pl\ntechnerjan@gmail.com" | tr "\n" " " > temp.txt  #do wykomaentowania
-							for mail in `cat temp.txt` 
+							
+							touch temp1.txt portion.txt
+					
+							while [ `cat temp.txt | wc -l` -gt 0 ];
 							do
-								sendemail -f wspolnota@lednica2000.pl -t $mail -s lednica2000.pl:587 -xu wspolnota@lednica2000.pl -xp Nllk-p7gwd_a -o tls=yes -l log -o message-file=$file -o message-content-type=html -o message-charset=utf-8 -q -u $subject $attachment
+								cat temp.txt | head -n 30 > portion.txt;
+								cat temp.txt | tail -n +31 > temp1.txt;
+								cat temp1.txt > temp.txt;
+								sed -i ':a;N;$!ba;s/\n/ /g' portion.txt #usuń spacje
+								
+								sendemail -f $from -bcc `cat portion.txt` -s $host -xu $login -xp $password -o tls=yes -l $logDirectory -o message-file=$file -o message-content-type=html -o message-charset=utf-8 -q -u $subject $attachment
 							done
+							
 						fi
+						rm temp1.txt
+						rm portion.txt
 						rm temp.txt
 						rm dane.txt
 						exit 0
@@ -102,4 +113,4 @@ else  # połączono z bazą danych
 		fi  # wybrano adresatów
 	fi  # wybrano poprawny tryb wysyłania
 fi  # połączono z bazą danych
-#END JANEK JANEK
+#END
